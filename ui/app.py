@@ -292,25 +292,25 @@ if generate_btn and topic:
         status_text.markdown("### 🤖 AI is analyzing papers...")
         progress_bar.progress(50)
         
-        resp = requests.post(
-            api_url,
-            json={"query": topic, "n_papers": n_papers, "sources": ["arxiv"]},
-            timeout=180
-        )
+            resp = requests.post(
+                api_url,
+                json={"query": topic, "n_papers": n_papers, "sources": ["arxiv"]},
+                timeout=180
+            )
 
-        if resp.status_code != 200:
+            if resp.status_code != 200:
             st.error(f"❌ Server Error: {resp.text}")
-            st.stop()
+                st.stop()
 
         # Stage 3: Generating summary
         status_text.markdown("### ✨ Generating comprehensive summary...")
         progress_bar.progress(75)
         time.sleep(0.5)
-        
+
         data = resp.json()
         summary = data.get("summary", {}) or {}
         scores = data.get("eval", {}) or {}
-        papers = data.get("papers", []) or {}
+        papers = data.get("papers", []) or []
 
         # Stage 4: Complete
         progress_bar.progress(100)
@@ -321,14 +321,14 @@ if generate_btn and topic:
         st.success(f"✅ Successfully analyzed {len(papers)} research papers on **{topic}**!")
 
         st.markdown("<br>", unsafe_allow_html=True)
-        
-        # ------------------- TABS -------------------
+
+            # ------------------- TABS -------------------
         tab_summary, tab_details, tab_papers, tab_insights = st.tabs(
             ["📘 Summary", "🔬 Details & Findings", "📚 Papers", "💡 Insights"]
-        )
+            )
 
-        # ===== TAB: SUMMARY =====
-        with tab_summary:
+            # ===== TAB: SUMMARY =====
+            with tab_summary:
                 st.markdown('<div class="section-header">📊 Quality Metrics</div>', unsafe_allow_html=True)
                 
                 # Evaluation metrics with improved styling
@@ -370,9 +370,9 @@ if generate_btn and topic:
                 else:
                     st.info("No summary paragraphs available.")
 
-        # ===== TAB: DETAILS =====
-        with tab_details:
-            mapping = {
+            # ===== TAB: DETAILS =====
+            with tab_details:
+                mapping = {
                 "🔬 Key Findings": ("key_findings", "#667eea"),
                 "🧪 Methods & Approaches": ("methods", "#48bb78"),
                 "✨ What's New": ("whats_new", "#ed8936"),
@@ -400,8 +400,8 @@ if generate_btn and topic:
             if not any(summary.get(key, []) for _, (key, _) in mapping.items()):
                 st.info("Detailed analysis is not available in mock mode. Use a real LLM provider for comprehensive insights.")
 
-        # ===== TAB: PAPERS =====
-        with tab_papers:
+            # ===== TAB: PAPERS =====
+            with tab_papers:
             st.markdown('<div class="section-header">⭐ Top Recommended Papers</div>', unsafe_allow_html=True)
             
             top_papers = summary.get("top5_papers", [])
@@ -492,8 +492,8 @@ if generate_btn and topic:
                 """.format(
                     len(papers),
                     topic,
-                    min(p.get('year', 2024) for p in papers if p.get('year')),
-                    max(p.get('year', 2024) for p in papers if p.get('year')),
+                    min((p.get('year', 2024) for p in papers if p.get('year')), default=2024),
+                    max((p.get('year', 2024) for p in papers if p.get('year')), default=2024),
                     sum(len(p.get('authors', [])) for p in papers)
                 ), unsafe_allow_html=True)
             
@@ -533,12 +533,12 @@ if generate_btn and topic:
                 </ul>
             </div>
             """.format(len(papers)), unsafe_allow_html=True)
-    
-    except requests.exceptions.Timeout:
+
+        except requests.exceptions.Timeout:
         progress_bar.empty()
         status_text.empty()
-        st.error("❌ Request timed out. Try again or reduce the number of papers.")
-    except Exception as e:
+            st.error("❌ Request timed out. Try again or reduce the number of papers.")
+        except Exception as e:
         progress_bar.empty()
         status_text.empty()
         st.error(f"⚠️ Error: {str(e)}")
